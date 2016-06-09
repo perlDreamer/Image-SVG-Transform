@@ -2,6 +2,8 @@ package Image::SVG::Transform;
 use strict;
 use warnings;
 
+use Clone qw/clone/;
+
 =head1 NAME
 
 Image::SVG::Transform - read the "transform" attribute of an SVG element
@@ -25,6 +27,7 @@ use warnings;
 use strict;
 use Moo;
 use Carp qw/croak/;
+use Math::Matrix;
 
 our $VERSION = '0.01';
 
@@ -101,6 +104,50 @@ sub extract_transforms {
         }
     }
     $self->transforms(\@transforms);
+}
+
+sub revert {
+    my $self  = shift;
+    my $point = shift;
+    return $point unless @{ $self->transforms };
+    push @{ $point }, 0; ##pad with zero to make a 1x3 matrix
+    my $idx = 0;
+    my $ctm = $self->_get_ctm();
+    my $userspace = Math::Matrix->new([
+        [ $point->[0] ],
+        [ $point->[1] ],
+        [ 1 ],
+    ]);
+    my $viewport = $ctm->multiple($userspace);
+    return $viewport;
+}
+
+sub _get_ctm {
+    my $self = shift;
+    my $ctm = Math::Matrix->new_identity(3);
+    while ($idx < scalar @{ $self->transforms }) {
+        warn "$idx";
+        my $matrix = $self->_generate_matrix($idx);
+        my $product = $matrix->multiply($ctm);
+        $ctm = $product;
+        $idx++;
+    }
+    return $ctm;
+}
+
+sub _generate_matrix {
+    my $self = shift;
+    my $index = shift;
+    my $t = $self->transforms->[$index];
+    my $matrix;
+    if ($t->{type} eq 'translate') {
+        $matrix = [
+            [ 1, 0, $t->{params}->[0], ],
+            [ 0, 1, $t->{params}->[1], ],
+            [ 0, 1, 0, ],
+        ];
+    }
+    return Math::Matrix->new($matrix);
 }
 
 1;
