@@ -79,6 +79,7 @@ sub extract_transforms {
         my ($transform_type, $params) = @{ $transformer };
         my @params = split $split_re, $params;
         croak "Unknown transform $transform_type" unless exists $valid_transforms->{$transform_type};
+        croak "No parameters for transform $transform_type" unless scalar @params;
         croak "Too many parameters ".scalar(@params). " for transform $transform_type" if scalar(@params) > $valid_transforms->{$transform_type};
         push @transforms, {
             type => $transform_type,
