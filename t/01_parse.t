@@ -16,11 +16,9 @@ is_deeply $trans->transforms(), [ { type => 'scale', params => [1,2], }], 'Corre
 
 dies_ok { $trans->extract_transforms('scalx(1 2)'); } 'dies on bad transform type';
 like $@, qr'^Unknown transform scalx', 'correct error message';
-is_deeply $trans->transforms(), [ { type => 'scale', params => [1,2], }], 'Correctly parsed the scale command with two args';
 
 dies_ok { $trans->extract_transforms('scale(1 2 3)'); } 'dies on too many arguments';
 like $@, qr'^Too many parameters 3 for transform scale', 'correct error message';
-is_deeply $trans->transforms(), [ { type => 'scale', params => [1,2], }], 'Correctly parsed the scale command with two args';
 
 lives_ok { $trans->extract_transforms('translate(4)'); } 'parses a single translate command, one arg';
 is_deeply $trans->transforms(), [ { type => 'translate', params => [4,], }], 'Correctly parsed the translate command with one arg';

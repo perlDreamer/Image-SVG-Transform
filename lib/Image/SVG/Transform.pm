@@ -38,6 +38,7 @@ has transforms => (
     default => sub { [] },
 );
 
+##Borrowed parsing code from Image::SVG::Path
 my $split_re = qr/
 		     (?:
 			 ,
@@ -51,6 +52,15 @@ my $split_re = qr/
 my $comma_wsp = qr/ (?: \s+ ,? \s*)|(?: , \s* )/x;
 my $number_re = qr/[-0-9.,e]+/i;
 my $numbers_re = qr/(?:$number_re|\s)*/;
+
+my $valid_transforms = {
+    scale     => 2,
+    translate => 2,
+    rotate    => 3,
+    skewX     => 1,
+    skewY     => 1,
+    matrix    => 6,
+};
 
 sub extract_transforms {
     my $self = shift;
@@ -70,17 +80,21 @@ sub extract_transforms {
     if (! @transformers) {
         croak "Image::SVG::Transform: Unable to parse the transform string $transform";
     }
-    my $valid_transforms = {
-        scale => 2,
-        translate => 2,
-    };
     my @transforms = ();
     foreach my $transformer (@transformers) {
         my ($transform_type, $params) = @{ $transformer };
         my @params = split $split_re, $params;
+        ##Global checks
         croak "Unknown transform $transform_type" unless exists $valid_transforms->{$transform_type};
         croak "No parameters for transform $transform_type" unless scalar @params;
         croak "Too many parameters ".scalar(@params). " for transform $transform_type" if scalar(@params) > $valid_transforms->{$transform_type};
+        ##Command specific checks
+        if ($transform_type eq 'rotate' && @params == 2) {
+            croak 'rotate transform may not have two parameters';
+        }
+        elsif ($transform_type eq 'matrix' && @params != 6) {
+            croak 'matrix transform must have exactly six parameters';
+        }
         push @transforms, {
             type => $transform_type,
             params => \@params,
