@@ -7,8 +7,8 @@ use blib;
 
 use_ok 'Image::SVG::Transform';
 
-my $trans = Image::SVG::Transform->new(transform => 'scale(1)');
-lives_ok { $trans->extract_transforms() } 'parses a single scale command';
+my $trans = Image::SVG::Transform->new();
+lives_ok { $trans->extract_transforms('scale(1)')} 'parses a single scale command';
 is_deeply $trans->transforms(), [ { type => 'scale', params => [1], }], 'Correctly parsed the scale command with one arg';
 
 lives_ok { $trans->extract_transforms('scale(1 2)'); } 'parses a single scale command, two args';

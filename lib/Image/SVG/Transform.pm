@@ -12,8 +12,8 @@ Image::SVG::Transform - read the "transform" attribute of an SVG element
 =head1 SYNOPSIS
 
     use Image::SVG::Transform;
-    my $transform = Image::SVG::Transform->new(transform => 'scale(0.5)');
-    $transform->extract_transforms();
+    my $transform = Image::SVG::Transform->new();
+    $transform->extract_transforms('scale(0.5)');
     my $view_point = $transform->untransform([5, 10]);
 
 =head1 DESCRIPTION
@@ -31,11 +31,6 @@ use Carp qw/croak/;
 use Math::Matrix;
 
 our $VERSION = '0.01';
-
-has transform => (
-    is => 'ro',
-    required => 1,
-);
 
 has transforms => (
     is => 'rw',
@@ -67,8 +62,8 @@ my $valid_transforms = {
 };
 
 sub extract_transforms {
-    my $self = shift;
-    my $transform = shift || $self->transform;
+    my $self      = shift;
+    my $transform = shift;
     ##Possible transforms:
     ## scale (x [y])
     ## translate (x [y])
@@ -107,26 +102,26 @@ sub extract_transforms {
     $self->transforms(\@transforms);
 }
 
-sub revert {
+sub transform {
     my $self  = shift;
     my $point = shift;
     return $point unless @{ $self->transforms };
     push @{ $point }, 0; ##pad with zero to make a 1x3 matrix
-    my $ictm = $self->_get_ctm()->invert;
+    my $ctm = $self->get_ctm();
     my $userspace = Math::Matrix->new(
         [ $point->[0] ],
         [ $point->[1] ],
         [ 1 ],
     );
-    my $viewport = $ictm->multiply($userspace);
+    my $viewport = $ctm->multiply($userspace);
     my $reverted_point = [ $viewport->[0]->[0], $viewport->[1]->[0] ];
     return $reverted_point;
 }
 
-sub _get_ctm {
+sub get_ctm {
     my $self = shift;
-    my $ctm = Math::Matrix->new_identity(3);
-    my $idx = 0;
+    my $ctm = $self->_generate_matrix(0);
+    my $idx = 1;
     while ($idx < scalar @{ $self->transforms }) {
         my $matrix = $self->_generate_matrix($idx);
         my $product = $matrix->multiply($ctm);

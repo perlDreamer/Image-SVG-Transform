@@ -8,8 +8,8 @@ use blib;
 use_ok 'Image::SVG::Transform';
 
 ##skewX
-my $trans = Image::SVG::Transform->new(transform => 'skewX(1)');
-lives_ok { $trans->extract_transforms() } 'parses a single skewX command';
+my $trans = Image::SVG::Transform->new();
+lives_ok { $trans->extract_transforms('skewX(1)') } 'parses a single skewX command';
 is_deeply $trans->transforms(), [ { type => 'skewX', params => [1], }], '... validate parameters';
 
 dies_ok { $trans->extract_transforms('skewX()'); } 'skewX dies on too few arguments';

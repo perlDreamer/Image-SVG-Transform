@@ -9,12 +9,12 @@ use blib;
 
 use_ok 'Image::SVG::Transform';
 
-##simple revert
-my $trans = Image::SVG::Transform->new(transform => 'translate(1,1)');
-$trans->extract_transforms();
-is_deeply $trans->transforms, [ { type => 'translate', params => [1,1], } ], 'checking setup for revert';
+##simple transform
+my $trans = Image::SVG::Transform->new();
+$trans->extract_transforms('translate(1,1)');
+is_deeply $trans->transforms, [ { type => 'translate', params => [1,1], } ], 'checking setup for transform';
 
-my $ctm = $trans->_get_ctm();
+my $ctm = $trans->get_ctm();
 cmp_deeply dump_matrix( $ctm ),
           [
             [ 1, 0, 1 ],
@@ -23,28 +23,28 @@ cmp_deeply dump_matrix( $ctm ),
           ],
           'Getting the combined transform matrix for a single transform';
 
-my $view1 = $trans->revert([2, 2]);
-is_deeply $view1, [ 1, 1 ], 'Undid translation from 1,1 to 2,2';
+my $view1 = $trans->transform([2, 2]);
+is_deeply $view1, [ 3, 3 ], 'Translate from 2,2 to 3,3';
 
-my $view2 = $trans->revert([6, 9]);
-is_deeply $view2, [ 5, 8 ], 'Undid translation from 5,8 to 6,9';
+my $view2 = $trans->transform([6, 9]);
+is_deeply $view2, [ 7, 10 ], 'Translate from 6,9 to 7,10';
 
 $trans->extract_transforms("translate(5)");
-my $view3 = $trans->revert([10, 10]);
-is_deeply $view3, [5, 10], 'Undid 5,0 translation scaling from 5,10 to 10,10';
+my $view3 = $trans->transform([10, 10]);
+is_deeply $view3, [15, 10], 'X-only translation from 10,10 to 15,10';
 
 $trans->extract_transforms("scale(3)");
-my $view4 = $trans->revert([36, 21]);
-is_deeply $view4, [12, 7], 'Undid 3X scaling from 12,7 to 36,21';
+my $view4 = $trans->transform([12, 7]);
+is_deeply $view4, [36, 21], '3X scaling from 12,7 to 36,21';
 
 $trans->extract_transforms("scale(2,4)");
-my $view5 = $trans->revert([8, 16]);
-is_deeply $view5, [4, 4], 'Undid 2,4 scaling from 4,4 to 8,16';
+my $view5 = $trans->transform([4, 4]);
+is_deeply $view5, [8, 16], '2,4 scaling from 4,4 to 8,16';
 
 $trans->extract_transforms("rotate(90.0)");
-my $view6 = $trans->revert([0, 4]);
-cmp_ok abs($view6->[0]-4), '<=', 1e-6, 'checking approximate x coordinate for 90 degree rotation';
-cmp_ok abs($view6->[1]-0), '<=', 1e-6, 'checking approximate y coordinate for 90 degree rotation';
+my $view6 = $trans->transform([4, 0]);
+cmp_ok abs($view6->[0]-0), '<=', 1e-6, 'checking approximate x coordinate for 90 degree rotation';
+cmp_ok abs($view6->[1]-4), '<=', 1e-6, 'checking approximate y coordinate for 90 degree rotation';
 
 done_testing();
 
