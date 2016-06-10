@@ -141,17 +141,21 @@ sub _generate_matrix {
     my $t = $self->transforms->[$index];
     my @matrix;
     if ($t->{type} eq 'translate') {
+        my $tx = $t->{params}->[0];
+        my $ty = defined $t->{params}->[1] ? $t->{params}->[0] : 0;
         @matrix = (
-            [ 1, 0, $t->{params}->[0], ],
-            [ 0, 1, $t->{params}->[1], ],
+            [ 1, 0, $tx, ],
+            [ 0, 1, $ty, ],
             [ 0, 0, 1, ],
         );
     }
     elsif ($t->{type} eq 'scale') {
+        my $sx = $t->{params}->[0];
+        my $sy = defined $t->{params}->[1] ? $t->{params}->[1] : $sx;
         @matrix = (
-            [ $t->{params}->[0], 0,                 0, ],
-            [ 0,                 $t->{params}->[1], 0, ],
-            [ 0,                 0,                 1, ],
+            [ $sx, 0,   0, ],
+            [ 0,   $sy, 0, ],
+            [ 0,   0,   1, ],
         );
     }
     return Math::Matrix->new(@matrix);
