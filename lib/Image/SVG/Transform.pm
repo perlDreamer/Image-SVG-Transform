@@ -1,6 +1,7 @@
 package Image::SVG::Transform;
 use strict;
 use warnings;
+use Math::Trig qw/deg2rad/;
 
 use Clone qw/clone/;
 
@@ -156,6 +157,51 @@ sub _generate_matrix {
             [ $sx, 0,   0, ],
             [ 0,   $sy, 0, ],
             [ 0,   0,   1, ],
+        );
+    }
+    elsif ($t->{type} eq 'scale') {
+        my $sx = $t->{params}->[0];
+        my $sy = defined $t->{params}->[1] ? $t->{params}->[1] : $sx;
+        @matrix = (
+            [ $sx, 0,   0, ],
+            [ 0,   $sy, 0, ],
+            [ 0,   0,   1, ],
+        );
+    }
+    elsif ($t->{type} eq 'rotate') {
+        my $angle = deg2rad($t->{params}->[0]);
+        my $cosa  = cos $angle;
+        my $sina  = sin $angle;
+        @matrix = (
+            [ $cosa, -1*$sina,  0, ],
+            [ $sina,    $sina,  0, ],
+            [ 0,            0,  1, ],
+        );
+    }
+    elsif ($t->{type} eq 'skewX') {
+        my $angle = deg2rad($t->{params}->[0]);
+        my $tana  = tan $angle;
+        @matrix = (
+            [ 1, $tana,  0, ],
+            [ 0,     1,  0, ],
+            [ 0,     0,  1, ],
+        );
+    }
+    elsif ($t->{type} eq 'skewY') {
+        my $angle = deg2rad($t->{params}->[0]);
+        my $tana  = tan $angle;
+        @matrix = (
+            [ 1,     0,  0, ],
+            [ $tana, 1,  0, ],
+            [ 0,     0,  1, ],
+        );
+    }
+    elsif ($t->{type} eq 'matrix') {
+        my $p = $t->{params};
+        @matrix = (
+            [ $p->[0], $p->[2],  $p->[4], ],
+            [ $p->[1], $p->[3],  $p->[5], ],
+            [ 0,       0,        1, ],
         );
     }
     return Math::Matrix->new(@matrix);

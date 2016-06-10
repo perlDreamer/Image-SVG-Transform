@@ -41,6 +41,11 @@ $trans->extract_transforms("scale(2,4)");
 my $view5 = $trans->revert([8, 16]);
 is_deeply $view5, [4, 4], 'Undid 2,4 scaling from 4,4 to 8,16';
 
+$trans->extract_transforms("rotate(90.0)");
+my $view6 = $trans->revert([0, 4]);
+cmp_ok abs($view6->[0]-4), '<=', 1e-6, 'checking approximate x coordinate for 90 degree rotation';
+cmp_ok abs($view6->[1]-0), '<=', 1e-6, 'checking approximate y coordinate for 90 degree rotation';
+
 done_testing();
 
 sub dump_matrix {
