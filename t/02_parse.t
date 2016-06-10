@@ -27,7 +27,14 @@ lives_ok { $trans->extract_transforms('rotate(1)') } 'parses a single rotate com
 is_deeply $trans->transforms(), [ { type => 'rotate', params => [1], }], '... validate parameters';
 
 lives_ok { $trans->extract_transforms('rotate(1 2 3)') } 'parses a single rotate command, 3 args';
-is_deeply $trans->transforms(), [ { type => 'rotate', params => [1,2,3], }], '... validate parameters';
+is_deeply
+    $trans->transforms,
+    [
+        { type => 'translate', params => [2,3], },
+        { type => 'rotate', params => [1], },
+        { type => 'translate', params => [-2,-3], },
+    ],
+    '3-arg rotate adds a pre- and post translate';
 
 dies_ok { $trans->extract_transforms('rotate(1,2,3,4)'); } 'rotate dies on too many arguments';
 like $@, qr'Too many parameters 4 for transform rotate', '...correct error message';

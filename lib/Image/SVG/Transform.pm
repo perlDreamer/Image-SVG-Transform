@@ -94,9 +94,27 @@ sub extract_transforms {
         elsif ($transform_type eq 'matrix' && @params != 6) {
             croak 'matrix transform must have exactly six parameters';
         }
-        push @transforms, {
-            type => $transform_type,
-            params => \@params,
+        if ($transform_type eq 'rotate' && @params == 3) {
+            ##Special rotate with pre- and post-translates
+            push @transforms,
+            {
+                type => 'translate',
+                params => [ $params[1], $params[2] ],
+            },
+            {
+                type => 'rotate',
+                params => [ $params[0], ],
+            },
+            {
+                type => 'translate',
+                params => [ -1*$params[1], -1*$params[2] ],
+            },
+        }
+        else {
+            push @transforms, {
+                type => $transform_type,
+                params => \@params,
+            }
         }
     }
     $self->transforms(\@transforms);
