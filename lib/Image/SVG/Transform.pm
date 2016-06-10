@@ -111,14 +111,15 @@ sub revert {
     my $point = shift;
     return $point unless @{ $self->transforms };
     push @{ $point }, 0; ##pad with zero to make a 1x3 matrix
-    my $ctm = $self->_get_ctm();
+    my $ictm = $self->_get_ctm()->invert;
     my $userspace = Math::Matrix->new(
         [ $point->[0] ],
         [ $point->[1] ],
         [ 1 ],
     );
-    my $viewport = $ctm->multiply($userspace);
-    return $viewport->transpose;
+    my $viewport = $ictm->multiply($userspace);
+    my $reverted_point = [ $viewport->[0]->[0], $viewport->[1]->[0] ];
+    return $reverted_point;
 }
 
 sub _get_ctm {
@@ -126,7 +127,6 @@ sub _get_ctm {
     my $ctm = Math::Matrix->new_identity(3);
     my $idx = 0;
     while ($idx < scalar @{ $self->transforms }) {
-        warn "$idx";
         my $matrix = $self->_generate_matrix($idx);
         my $product = $matrix->multiply($ctm);
         $ctm = $product;
@@ -145,6 +145,13 @@ sub _generate_matrix {
             [ 1, 0, $t->{params}->[0], ],
             [ 0, 1, $t->{params}->[1], ],
             [ 0, 0, 1, ],
+        );
+    }
+    elsif ($t->{type} eq 'scale') {
+        @matrix = (
+            [ $t->{params}->[0], 0,                 0, ],
+            [ 0,                 $t->{params}->[1], 0, ],
+            [ 0,                 0,                 1, ],
         );
     }
     return Math::Matrix->new(@matrix);

@@ -23,6 +23,10 @@ cmp_deeply dump_matrix( $ctm ),
           ],
           'Getting the combined transform matrix for a single transform';
 
+my $viewspace = $trans->revert([2, 2]);
+
+cmp_deeply $viewspace, [ 1, 1 ], 'Undid translation from 1,1 to 2,2';
+
 done_testing();
 
 sub dump_matrix {
