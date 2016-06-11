@@ -1,9 +1,6 @@
 package Image::SVG::Transform;
 use strict;
 use warnings;
-use Math::Trig qw/deg2rad/;
-
-use Clone qw/clone/;
 
 =head1 NAME
 
@@ -14,7 +11,7 @@ Image::SVG::Transform - read the "transform" attribute of an SVG element
     use Image::SVG::Transform;
     my $transform = Image::SVG::Transform->new();
     $transform->extract_transforms('scale(0.5)');
-    my $view_point = $transform->untransform([5, 10]);
+    my $view_point = $transform->transform([5, 10]);
 
 =head1 DESCRIPTION
 
@@ -22,18 +19,45 @@ This module parses and converts the contents of the transform attribute in SVG i
 a series of array of hashes, and then provide a convenience method for doing point transformation
 from the transformed space to the viewpoint space.
 
+This is useful if you're doing SVG rendering, or if you are trying to estimate the length of shapes in an SVG file.
+
+=head1 METHODS
+
+The following methods are available.
+
+=head2 new ()
+
+Constructor for the class.  It takes no arguments.
+
 =cut
 
-use warnings;
-use strict;
 use Moo;
 use Carp qw/croak/;
 use Math::Matrix;
+use Math::Trig qw/deg2rad/;
+
+use namespace::clean;
 
 our $VERSION = '0.01';
 
+=head2 transforms
+
+The list of transforms that were extracted from the transform string that submitted to L<extract_transforms>.  Each transform will be an object in the C<Image::SVG::Transform::*> class, with base properties:
+
+=head3 type
+
+The type of transformation (scale, translate, skewX, matrix, skewY, rotate).
+
+=head3 params
+
+The list of parameters for the transform.
+
+See the specific classes for more information.
+
+=cut
+
 has transforms => (
-    is => 'rw',
+    is => 'rwp',
     default => sub { [] },
 );
 
@@ -60,6 +84,14 @@ my $valid_transforms = {
     skewY     => 1,
     matrix    => 6,
 };
+
+=head2 extract_transforms ( $svg_transformatoin )
+
+Parses the C<$svg_transformation> string, which is expected to contain a valid set of SVG transformations as described in section 7.6 of the SVG spec: L<https://www.w3.org/TR/SVG/coords.html#TransformAttribute>.  Unrecognized transformation types, or valid types with the wrong number of arguments, will cause C<Image::SVG::Transform> to C<croak> with an error message.
+
+After it is done parsing, it update the stored C<transforms> and clears the stored combined transformation matrix.
+
+=cut
 
 sub extract_transforms {
     my $self      = shift;
@@ -117,8 +149,15 @@ sub extract_transforms {
             }
         }
     }
-    $self->transforms(\@transforms);
+    $self->_set_transforms(\@transforms);
+    $self->clear_ctm;
 }
+
+=head2 transform ( $point )
+
+Using the stored set of one or more C<transforms>, transform C<$point> from the local coordinate system to viewport coordinate system.  The combined transformation matrix is cached so that it isn't recalculated everytime this method is called.
+
+=cut
 
 sub transform {
     my $self  = shift;
@@ -136,18 +175,29 @@ sub transform {
     return $reverted_point;
 }
 
-sub get_ctm {
-    my $self = shift;
-    my $ctm = $self->_generate_matrix(0);
-    my $idx = 1;
-    while ($idx < scalar @{ $self->transforms }) {
-        my $matrix = $self->_generate_matrix($idx);
-        my $product = $matrix->multiply($ctm);
-        $ctm = $product;
-        $idx++;
-    }
-    return $ctm;
-}
+=head2 ctm
+
+The combined transformation matrix for the set of transforms.  This is a C<Math::Matrix> object.
+
+=cut
+
+has ctm => (
+    isa => 'rw',
+    lazy => 1,
+    clearer => 'clear_ctm',
+    default => sub {
+        my $self = shift;
+        my $ctm = $self->_generate_matrix(0);
+        my $idx = 1;
+        while ($idx < scalar @{ $self->transforms }) {
+            my $matrix = $self->_generate_matrix($idx);
+            my $product = $matrix->multiply($ctm);
+            $ctm = $product;
+            $idx++;
+        }
+        return $ctm;
+    },
+);
 
 sub _generate_matrix {
     my $self = shift;
@@ -219,5 +269,38 @@ sub _generate_matrix {
     }
     return Math::Matrix->new(@matrix);
 }
+
+=head1 PREREQS
+
+L<namespace::clean>
+L<Clone>
+L<Math::Trig>
+L<Math::Matrix>
+L<Carp>
+L<Moo>
+
+=head1 SUPPORT
+
+=over
+
+=item Repository
+
+L<http://github.com/perlDreamer/Image-SVG-Transform>
+
+=item Bug Reports
+
+L<http://github.com/perlDreamer/Image-SVG-Transform/issues>
+
+=back
+
+=head1 AUTHOR
+
+Colin Kuskie <colink_at_plainblack_dot_com>
+
+=head1 LEGAL
+
+This module is Copyright 2016 Plain Black Corporation. It is distributed under the same terms as Perl itself. 
+
+=cut
 
 1;
