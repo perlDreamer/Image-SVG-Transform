@@ -188,13 +188,12 @@ sub transform {
     my $point = shift;
     return $point unless @{ $self->transforms };
     push @{ $point }, 0; ##pad with zero to make a 1x3 matrix
-    my $ctm = $self->get_ctm();
     my $userspace = Math::Matrix->new(
         [ $point->[0] ],
         [ $point->[1] ],
         [ 1 ],
     );
-    my $viewport = $ctm->multiply($userspace);
+    my $viewport = $self->ctm->multiply($userspace);
     my $reverted_point = [ $viewport->[0]->[0], $viewport->[1]->[0] ];
     return $reverted_point;
 }
