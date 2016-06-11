@@ -61,6 +61,30 @@ has transforms => (
     default => sub { [] },
 );
 
+=head2 ctm
+
+The combined transformation matrix for the set of transforms.  This is a C<Math::Matrix> object.
+
+=cut
+
+has ctm => (
+    is   => 'rw',
+    lazy => 1,
+    clearer => 'clear_ctm',
+    default => sub {
+        my $self = shift;
+        my $ctm = $self->_generate_matrix(0);
+        my $idx = 1;
+        while ($idx < scalar @{ $self->transforms }) {
+            my $matrix = $self->_generate_matrix($idx);
+            my $product = $matrix->multiply($ctm);
+            $ctm = $product;
+            $idx++;
+        }
+        return $ctm;
+    },
+);
+
 ##Borrowed parsing code from Image::SVG::Path
 my $split_re = qr/
 		     (?:
@@ -174,30 +198,6 @@ sub transform {
     my $reverted_point = [ $viewport->[0]->[0], $viewport->[1]->[0] ];
     return $reverted_point;
 }
-
-=head2 ctm
-
-The combined transformation matrix for the set of transforms.  This is a C<Math::Matrix> object.
-
-=cut
-
-has ctm => (
-    isa => 'rw',
-    lazy => 1,
-    clearer => 'clear_ctm',
-    default => sub {
-        my $self = shift;
-        my $ctm = $self->_generate_matrix(0);
-        my $idx = 1;
-        while ($idx < scalar @{ $self->transforms }) {
-            my $matrix = $self->_generate_matrix($idx);
-            my $product = $matrix->multiply($ctm);
-            $ctm = $product;
-            $idx++;
-        }
-        return $ctm;
-    },
-);
 
 sub _generate_matrix {
     my $self = shift;
