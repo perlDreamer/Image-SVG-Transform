@@ -42,7 +42,7 @@ our $VERSION = '0.01';
 
 =head2 transforms
 
-The list of transforms that were extracted from the transform string that submitted to L<extract_transforms>.  Each transform will be an object in the C<Image::SVG::Transform::*> class, with base properties:
+The list of transforms that were extracted from the transform string that submitted to L<extract_transforms>.  Each transform will be a hashref with these keys:
 
 =head3 type
 
@@ -109,7 +109,7 @@ my $valid_transforms = {
     matrix    => 6,
 };
 
-=head2 extract_transforms ( $svg_transformatoin )
+=head2 extract_transforms ( $svg_transformation )
 
 Parses the C<$svg_transformation> string, which is expected to contain a valid set of SVG transformations as described in section 7.6 of the SVG spec: L<https://www.w3.org/TR/SVG/coords.html#TransformAttribute>.  Unrecognized transformation types, or valid types with the wrong number of arguments, will cause C<Image::SVG::Transform> to C<croak> with an error message.
 
@@ -295,6 +295,15 @@ L<http://github.com/perlDreamer/Image-SVG-Transform/issues>
 =head1 AUTHOR
 
 Colin Kuskie <colink_at_plainblack_dot_com>
+
+=head1 SEE ALSO
+
+L<Image::SVG::Path>
+L<SVG::Estimate>
+
+=head1 THANKS
+
+Thank you to Ben Bullock, author of L<Image::SVG::Path> for the regular expressions for the parser.
 
 =head1 LEGAL
 
