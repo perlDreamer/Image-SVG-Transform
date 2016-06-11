@@ -14,7 +14,7 @@ my $trans = Image::SVG::Transform->new();
 $trans->extract_transforms('translate(1,1)');
 is_deeply $trans->transforms, [ { type => 'translate', params => [1,1], } ], 'checking setup for transform';
 
-my $ctm = $trans->get_ctm();
+my $ctm = $trans->ctm();
 cmp_deeply dump_matrix( $ctm ),
           [
             [ 1, 0, 1 ],

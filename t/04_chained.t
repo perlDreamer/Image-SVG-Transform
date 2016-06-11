@@ -19,7 +19,7 @@ is_deeply
     ],
     'checking setup for transform';
 
-my $ctm = $trans->get_ctm();
+my $ctm = $trans->ctm();
 cmp_deeply dump_matrix( $ctm ),
           [
             [ 2, 0, 2 ],
