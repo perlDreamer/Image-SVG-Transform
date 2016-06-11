@@ -205,7 +205,7 @@ sub _generate_matrix {
     my @matrix;
     if ($t->{type} eq 'translate') {
         my $tx = $t->{params}->[0];
-        my $ty = defined $t->{params}->[1] ? $t->{params}->[0] : 0;
+        my $ty = defined $t->{params}->[1] ? $t->{params}->[1] : 0;
         @matrix = (
             [ 1, 0, $tx, ],
             [ 0, 1, $ty, ],
