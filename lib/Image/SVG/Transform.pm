@@ -1,4 +1,7 @@
 package Image::SVG::Transform;
+
+
+
 use strict;
 use warnings;
 
@@ -37,8 +40,6 @@ use Math::Trig qw/deg2rad/;
 use Ouch;
 
 use namespace::clean;
-
-our $VERSION = '0.003';
 
 =head2 transforms
 
