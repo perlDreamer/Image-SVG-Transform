@@ -1,3 +1,7 @@
+0.0102 - June 11, 2016 (even later in the day)
+ * Add predicates and clearer for transforms
+ * Change from croak to ouch (Add Ouch as a dependency)
+
 0.0101 - June 11, 2016 (later in the day)
  * Handle X&Y translates
 

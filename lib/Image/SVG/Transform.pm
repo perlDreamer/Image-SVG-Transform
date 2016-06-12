@@ -32,9 +32,9 @@ Constructor for the class.  It takes no arguments.
 =cut
 
 use Moo;
-use Carp qw/croak/;
 use Math::Matrix;
 use Math::Trig qw/deg2rad/;
+use Ouch;
 
 use namespace::clean;
 
@@ -50,16 +50,25 @@ The type of transformation (scale, translate, skewX, matrix, skewY, rotate).
 
 =head3 params
 
-The list of parameters for the transform.
-
-See the specific classes for more information.
+An arrayref of hashrefs.  Each hashref has key for type (string) and params (arrayref of numeric parameters).
 
 =cut
 
 has transforms => (
     is => 'rwp',
-    default => sub { [] },
+    clearer   => 'clear_transforms',
+    predicate => 'has_transforms',
 );
+
+=head2 has_transforms
+
+Returns true if the object has any transforms.
+
+=head2 clear_transforms
+
+Clear the set of transforms
+
+=cut
 
 =head2 ctm
 
@@ -113,7 +122,21 @@ my $valid_transforms = {
 
 Parses the C<$svg_transformation> string, which is expected to contain a valid set of SVG transformations as described in section 7.6 of the SVG spec: L<https://www.w3.org/TR/SVG/coords.html#TransformAttribute>.  Unrecognized transformation types, or valid types with the wrong number of arguments, will cause C<Image::SVG::Transform> to C<croak> with an error message.
 
-After it is done parsing, it update the stored C<transforms> and clears the stored combined transformation matrix.
+After it is done parsing, it updates the stored C<transforms> and clears the stored combined transformation matrix.
+
+Passing in the empty string will clear the set of transformations.
+
+In the following conditions, C<Image::SVG::Transform> will throw an exception using L<Ouch>:
+
+=over 4
+
+=item The transform string could not be parsed
+
+=item The transform contains un unknown type
+
+=item The type of transform has the wrong number of arguments
+
+=back
 
 =cut
 
@@ -127,28 +150,34 @@ sub extract_transforms {
     $transform =~ s/^\s*//;
     $transform =~ s/^\s*$//;
 
+    ##On the empty string, just reset the object
+    if (! $transform) {
+        $self->clear_transforms;
+        $self->clear_ctm;
+        return;
+    }
     my @transformers = ();
     while ($transform =~ m/\G (\w+) \s* \( \s* ($numbers_re) \s* \) (?:$comma_wsp)? /gx ) {
         push @transformers, [$1, $2];
     }
 
     if (! @transformers) {
-        croak "Image::SVG::Transform: Unable to parse the transform string $transform";
+        ouch 'bad_transform_string', "Image::SVG::Transform: Unable to parse the transform string $transform";
     }
     my @transforms = ();
     foreach my $transformer (@transformers) {
         my ($transform_type, $params) = @{ $transformer };
         my @params = split $split_re, $params;
         ##Global checks
-        croak "Unknown transform $transform_type" unless exists $valid_transforms->{$transform_type};
-        croak "No parameters for transform $transform_type" unless scalar @params;
-        croak "Too many parameters ".scalar(@params). " for transform $transform_type" if scalar(@params) > $valid_transforms->{$transform_type};
+        ouch 'unknown_type', "Unknown transform $transform_type" unless exists $valid_transforms->{$transform_type};
+        ouch 'no_parameters', "No parameters for transform $transform_type" unless scalar @params;
+        ouch 'too_many_parameters', "Too many parameters ".scalar(@params). " for transform $transform_type" if scalar(@params) > $valid_transforms->{$transform_type};
         ##Command specific checks
         if ($transform_type eq 'rotate' && @params == 2) {
-            croak 'rotate transform may not have two parameters';
+            ouch 'rotate_2', 'rotate transform may not have two parameters';
         }
         elsif ($transform_type eq 'matrix' && @params != 6) {
-            croak 'matrix transform must have exactly six parameters';
+            ouch 'matrix_6', 'matrix transform must have exactly six parameters';
         }
         if ($transform_type eq 'rotate' && @params == 3) {
             ##Special rotate with pre- and post-translates
@@ -186,7 +215,7 @@ Using the stored set of one or more C<transforms>, transform C<$point> from the 
 sub transform {
     my $self  = shift;
     my $point = shift;
-    return $point unless @{ $self->transforms };
+    return $point unless $self->has_transforms;
     push @{ $point }, 0; ##pad with zero to make a 1x3 matrix
     my $userspace = Math::Matrix->new(
         [ $point->[0] ],
@@ -272,10 +301,9 @@ sub _generate_matrix {
 =head1 PREREQS
 
 L<namespace::clean>
-L<Clone>
 L<Math::Trig>
 L<Math::Matrix>
-L<Carp>
+L<Ouch>
 L<Moo>
 
 =head1 SUPPORT
