@@ -1,4 +1,5 @@
 0.0102 - June 12, 2016
+ * Document that Clone is a requirement (for testing)
  * Add predicates and clearer for transforms
  * Change from croak to ouch (Add Ouch as a dependency)
  * Add the "untransform" method, to go from viewport to userspace points
