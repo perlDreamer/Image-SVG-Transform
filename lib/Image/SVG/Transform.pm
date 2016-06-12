@@ -223,8 +223,27 @@ sub transform {
         [ 1 ],
     );
     my $viewport = $self->ctm->multiply($userspace);
-    my $reverted_point = [ $viewport->[0]->[0], $viewport->[1]->[0] ];
-    return $reverted_point;
+    return [ $viewport->[0]->[0], $viewport->[1]->[0] ];
+}
+
+=head2 untransform ( $point )
+
+The opposite of C<transform>.  It takes a point from the viewport coordinates and transforms them into the local coordinate system.
+
+=cut
+
+sub untransform {
+    my $self  = shift;
+    my $point = shift;
+    return $point unless $self->has_transforms;
+    push @{ $point }, 0; ##pad with zero to make a 1x3 matrix
+    my $viewport = Math::Matrix->new(
+        [ $point->[0] ],
+        [ $point->[1] ],
+        [ 1 ],
+    );
+    my $userspace = $self->ctm->invert->multiply($viewport);
+    return [ $userspace->[0]->[0], $userspace->[1]->[0] ];
 }
 
 sub _generate_matrix {

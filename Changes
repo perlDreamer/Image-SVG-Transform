@@ -1,6 +1,7 @@
-0.0102 - June 11, 2016 (even later in the day)
+0.0102 - June 12, 2016
  * Add predicates and clearer for transforms
  * Change from croak to ouch (Add Ouch as a dependency)
+ * Add the "untransform" method, to go from viewport to userspace points
 
 0.0101 - June 11, 2016 (later in the day)
  * Handle X&Y translates

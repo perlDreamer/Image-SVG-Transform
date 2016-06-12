@@ -28,6 +28,7 @@ is_deeply $view1, [ 3, 3 ], 'Translate from 2,2 to 3,3';
 
 my $view2 = $trans->transform([6, 9]);
 is_deeply $view2, [ 7, 10 ], 'Translate from 6,9 to 7,10';
+is_deeply $trans->untransform([2, 3]), [ 1, 2], 'untranslate from 2,3 to 0,1';
 
 $trans->extract_transforms("translate(5)");
 my $view3 = $trans->transform([10, 10]);
@@ -40,6 +41,9 @@ is_deeply $view3a, [15, 20], 'X&Y translation from 10,10 to 15,20';
 $trans->extract_transforms("scale(3)");
 my $view4 = $trans->transform([12, 7]);
 is_deeply $view4, [36, 21], '3X scaling from 12,7 to 36,21';
+
+my $user4 = $trans->untransform([6,6]);
+is_deeply $user4, [2, 2], 'untransform 3X scaling from 6,6 to 2,2';
 
 $trans->extract_transforms("scale(2,4)");
 my $view5 = $trans->transform([4, 4]);
