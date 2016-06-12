@@ -38,7 +38,7 @@ use Ouch;
 
 use namespace::clean;
 
-our $VERSION = '0.01';
+our $VERSION = '0.003';
 
 =head2 transforms
 
