@@ -270,15 +270,6 @@ sub _generate_matrix {
             [ 0,   0,   1, ],
         );
     }
-    elsif ($t->{type} eq 'scale') {
-        my $sx = $t->{params}->[0];
-        my $sy = defined $t->{params}->[1] ? $t->{params}->[1] : $sx;
-        @matrix = (
-            [ $sx, 0,   0, ],
-            [ 0,   $sy, 0, ],
-            [ 0,   0,   1, ],
-        );
-    }
     elsif ($t->{type} eq 'rotate') {
         my $angle = deg2rad($t->{params}->[0]);
         my $cosa  = cos $angle;

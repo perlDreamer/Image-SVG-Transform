@@ -1,3 +1,6 @@
+0.04 - September 2, 2016
+ * Remove duplicate code for handling scale twice
+
 0.0102 - June 12, 2016
  * Document that Clone is a requirement (for testing)
  * Add predicates and clearer for transforms
