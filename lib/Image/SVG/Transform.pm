@@ -276,7 +276,7 @@ sub _generate_matrix {
         my $sina  = sin $angle;
         @matrix = (
             [ $cosa, -1*$sina,  0, ],
-            [ $sina,    $sina,  0, ],
+            [ $sina,    $cosa,  0, ],
             [ 0,            0,  1, ],
         );
     }
