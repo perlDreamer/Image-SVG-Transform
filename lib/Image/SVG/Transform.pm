@@ -87,7 +87,7 @@ has ctm => (
         my $idx = 1;
         while ($idx < scalar @{ $self->transforms }) {
             my $matrix = $self->_generate_matrix($idx);
-            my $product = $matrix->multiply($ctm);
+            my $product = $ctm->multiply($matrix);
             $ctm = $product;
             $idx++;
         }
