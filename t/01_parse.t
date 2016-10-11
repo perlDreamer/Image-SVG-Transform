@@ -53,6 +53,6 @@ lives_ok { $trans->extract_transforms('translate(4+7)'); } 'parses translate and
 is_deeply $trans->transforms(), [ { type => 'translate', params => [4,7], }, ], '... validate command data';
 
 lives_ok { $trans->extract_transforms('translate(4e1-7e-1)'); } 'parses translate and scale commands, + b/w args';
-is_deeply $trans->transforms(), [ { type => 'translate', params => [4e1,0.7], }, ], '... validate command data';
+is_deeply $trans->transforms(), [ { type => 'translate', params => ['4e1','-7e-1'], }, ], '... validate command data';
 
 done_testing();
