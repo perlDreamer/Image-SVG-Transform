@@ -102,12 +102,14 @@ my $split_re = qr/
 		     |
 			 (?<!e)(?=-)
 		     |
+			 (?<!e)(?:\+)
+		     |
 			 \s+
 		     )
 		 /x;
 
 my $comma_wsp = qr/ (?: \s+ ,? \s*)|(?: , \s* )/x;
-my $number_re = qr/[-0-9.,e]+/i;
+my $number_re = qr/[\+\-0-9.,e]+/i;
 my $numbers_re = qr/(?:$number_re|\s)*/;
 
 my $valid_transforms = {

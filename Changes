@@ -1,3 +1,6 @@
+0.05 - October 10, 2016
+ * Handle plus signs in and between numbers
+
 0.04 - September 2, 2016
  * Remove duplicate code for handling scale twice
 
