@@ -1,3 +1,6 @@
+0.07 - October 14, 2016
+ * Use new SVG parsing code from Image::SVG::Path
+
 0.06 - October 11, 2016
  * Fix failing tests
 

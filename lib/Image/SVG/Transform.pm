@@ -39,6 +39,8 @@ use Math::Matrix;
 use Math::Trig qw/deg2rad/;
 use Ouch;
 
+##
+
 use namespace::clean;
 
 =head2 transforms
@@ -95,22 +97,101 @@ has ctm => (
     },
 );
 
-##Borrowed parsing code from Image::SVG::Path
+##Blatantly stolen from Image::SVG::Path
+
+# Match the e or E in an exponent.
+
+my $e = qr/[eE]/;
+
+# These regular expressions are directly taken from the SVG grammar,
+# https://www.w3.org/TR/SVG/paths.html#PathDataBNF
+
+our $sign = qr/\+|\-/;
+
+our $wsp = qr/[\x20\x09\x0D\x0A]/;
+
+our $comma_wsp = qr/(?:$wsp+,?$wsp*|,$wsp*)/;
+
+# The following regular expression splits the path into pieces Note we
+# only split on '-' or '+' when not preceeded by 'e'.  This regular
+# expression is not following the SVG grammar, it is going our own
+# way.
+
 my $split_re = qr/
 		     (?:
-			 ,
+			 $wsp*,$wsp*
 		     |
-			 (?<!e)(?=-)
+			 (?<!$e)(?=-)
 		     |
-			 (?<!e)(?:\+)
+			 (?<!$e)(?:\+)
 		     |
-			 \s+
+			 $wsp+
 		     )
 		 /x;
 
-my $comma_wsp = qr/ (?: \s+ ,? \s*)|(?: , \s* )/x;
-my $number_re = qr/[\+\-0-9.,e]+/i;
-my $numbers_re = qr/(?:$number_re|\s)*/;
+# Match a number
+
+# From SVG grammar, https://www.w3.org/TR/SVG/paths.html#PathDataBNF
+
+# $ds is "digit sequence", and it accounts for all the uses of "digit"
+# in the SVG path grammar, so there is no "digit" here.
+
+
+my $ds = qr/[0-9]+/;
+our $digit_sequence = $ds;
+
+# From SVG grammar, https://www.w3.org/TR/SVG/paths.html#PathDataBNF
+
+# Aside to whoever wrote the SVG standards: this is not an integer,
+# it's a whole number!
+
+our $integer_constant = qr/$ds/;
+
+# From SVG grammar, https://www.w3.org/TR/SVG/paths.html#PathDataBNF
+
+our $fractional_constant = qr/$ds? \. $ds/x;
+
+# From SVG grammar, https://www.w3.org/TR/SVG/paths.html#PathDataBNF
+
+our $exponent = qr/
+		     $e
+		     $sign?
+		     $ds
+		 /x;
+
+# From SVG grammar, https://www.w3.org/TR/SVG/paths.html#PathDataBNF
+
+our $floating_point_constant = qr/
+				    $fractional_constant 
+				    $exponent?
+				|
+				    $ds
+				    $exponent
+				/x;
+
+
+# From SVG grammar, https://www.w3.org/TR/SVG/paths.html#PathDataBNF
+
+# $floating_point_constant needs to go before $integer_constant,
+# otherwise it matches the shorter $integer_constant every time.
+
+our $number = qr/
+		    $sign?
+		    $floating_point_constant
+		|
+		    $sign?
+		    $integer_constant
+		/x;
+
+my $pair = qr/$number $comma_wsp? $number/x;
+
+my $pairs = qr/(?:$pair $wsp)* $pair/x;
+
+my $numbers = qr/(?:$number $wsp)* $number/x;
+
+# This is where we depart from the SVG grammar and go our own way.
+
+my $numbers_re = qr/(?:$number|$comma_wsp+)*/;
 
 my $valid_transforms = {
     scale     => 2,
